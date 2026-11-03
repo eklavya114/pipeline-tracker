@@ -1,98 +1,52 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getApplicationById } from '@/lib/db/applications'
-import { getCandidateById } from '@/lib/db/candidates'
-import { getOutcomeHistory } from '@/lib/db/outcome-history'
 import { getCompanyById } from '@/lib/db/companies'
-import { OutcomeHistoryTimeline } from '@/components/outcome-history-timeline'
 import { Button } from '@/components/ui/button'
-import { COPY } from '@/lib/copy'
+import { DeleteApplicationButton } from '@/components/delete-application-button'
 
 export default async function ApplicationDetailPage({ params }: { params: { id: string } }) {
   const application = await getApplicationById(params.id)
   if (!application) notFound()
 
-  const [company, candidate, history] = await Promise.all([
-    getCompanyById(application.company_id),
-    application.candidate_id
-      ? getCandidateById(application.candidate_id)
-      : Promise.resolve(null),
-    getOutcomeHistory(params.id),
-  ])
+  const company = await getCompanyById(application.company_id)
+
+  const fields = [
+    { label: 'Company', value: company?.name ?? '—' },
+    { label: 'Role', value: application.role_title },
+    { label: 'Status', value: application.current_status },
+    { label: 'Round', value: application.current_round ?? '—' },
+    { label: 'Outcome', value: application.outcome },
+    { label: 'Applied', value: application.applied_at ?? '—' },
+    { label: 'Source', value: application.source ?? '—' },
+  ]
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-6 max-w-2xl">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{application.role_title}</h1>
-        <Link href={`/applications/${params.id}/edit`}>
-          <Button variant="secondary">{COPY.applications.edit}</Button>
+        <Link href={`/applications/${application.id}/edit`}>
+          <Button variant="secondary">Edit</Button>
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.company}</p>
-            <p className="text-sm font-medium text-gray-900">{company?.name ?? '—'}</p>
+      <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+        {fields.map(({ label, value }) => (
+          <div key={label} className="flex px-6 py-3 gap-4">
+            <span className="w-32 text-sm font-medium text-gray-500 shrink-0">{label}</span>
+            <span className="text-sm text-gray-900">{value}</span>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.status}</p>
-            <p className="text-sm font-medium text-gray-900">{application.current_status}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.round}</p>
-            <p className="text-sm font-medium text-gray-900">
-              {application.current_round ?? '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.outcome}</p>
-            <p className="text-sm font-medium text-gray-900">{application.outcome}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.appliedAt}</p>
-            <p className="text-sm font-medium text-gray-900">
-              {application.applied_at ?? '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.source}</p>
-            <p className="text-sm font-medium text-gray-900">{application.source ?? '—'}</p>
-          </div>
-        </div>
+        ))}
         {application.notes && (
-          <div>
-            <p className="text-xs text-gray-500 uppercase">{COPY.applications.notes}</p>
-            <p className="text-sm text-gray-900">{application.notes}</p>
+          <div className="flex px-6 py-3 gap-4">
+            <span className="w-32 text-sm font-medium text-gray-500 shrink-0">Notes</span>
+            <span className="text-sm text-gray-900 whitespace-pre-wrap">{application.notes}</span>
           </div>
         )}
       </div>
 
-      {candidate && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
-          <h2 className="text-base font-semibold text-gray-900">
-            {COPY.applications.candidateSection}
-          </h2>
-          {candidate.full_name && (
-            <p className="text-sm text-gray-900">{candidate.full_name}</p>
-          )}
-          {candidate.email && <p className="text-sm text-gray-600">{candidate.email}</p>}
-          {candidate.phone && <p className="text-sm text-gray-600">{candidate.phone}</p>}
-          {candidate.linkedin_url && (
-            <a
-              href={candidate.linkedin_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              LinkedIn
-            </a>
-          )}
-        </div>
-      )}
-
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <OutcomeHistoryTimeline history={history} />
+      <div className="border-t pt-4">
+        <DeleteApplicationButton id={application.id} />
       </div>
     </div>
   )

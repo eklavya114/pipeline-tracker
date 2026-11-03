@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { getRecentApplications } from '@/lib/db/applications'
 import { COPY } from '@/lib/copy'
 
+const OWNER_ID = '00000000-0000-0000-0000-000000000000'
+
 export default async function DashboardPage() {
   const supabase = createServerSupabaseClient()
 
@@ -13,10 +15,11 @@ export default async function DashboardPage() {
     { count: pendingOutcomes },
     recentApplications,
   ] = await Promise.all([
-    supabase.from('companies').select('*', { count: 'exact', head: true }),
+    supabase.from('companies').select('*', { count: 'exact', head: true }).eq('owner_id', OWNER_ID),
     supabase
       .from('applications')
       .select('*', { count: 'exact', head: true })
+      .eq('owner_id', OWNER_ID)
       .eq('outcome', 'pending'),
     getRecentApplications(10),
   ])
