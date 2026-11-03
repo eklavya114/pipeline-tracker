@@ -11,12 +11,14 @@ export default async function EditApplicationPage({ params }: { params: { id: st
   const application = await getApplicationById(params.id)
   if (!application) notFound()
 
+  const resolvedApplication = application
+
   const [companies, statusOptions, roundOptions, existingCandidate] = await Promise.all([
     getCompanies(),
     getDropdownOptions('application_status'),
     getDropdownOptions('interview_round'),
-    application.candidate_id
-      ? getCandidateById(application.candidate_id)
+    resolvedApplication.candidate_id
+      ? getCandidateById(resolvedApplication.candidate_id)
       : Promise.resolve(null),
   ])
 
@@ -26,7 +28,7 @@ export default async function EditApplicationPage({ params }: { params: { id: st
   ) {
     'use server'
 
-    let candidateId = application.candidate_id ?? undefined
+    let candidateId = resolvedApplication.candidate_id ?? undefined
 
     if (candidateValues) {
       const { data: candidate, error: candidateError } = await upsertCandidate(
