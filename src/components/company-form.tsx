@@ -18,6 +18,7 @@ export function CompanyForm({ initialValues, onSubmit, onCancel }: CompanyFormPr
   const router = useRouter()
   const [values, setValues] = useState<CompanyFormValues>({
     name: initialValues?.name ?? '',
+    industry: initialValues?.industry ?? '',
     website: initialValues?.website ?? '',
     notes: initialValues?.notes ?? '',
   })
@@ -42,7 +43,6 @@ export function CompanyForm({ initialValues, onSubmit, onCancel }: CompanyFormPr
 
     setErrors({})
     setIsSubmitting(true)
-
     const { error } = await onSubmit(result.data)
     setIsSubmitting(false)
 
@@ -64,6 +64,14 @@ export function CompanyForm({ initialValues, onSubmit, onCancel }: CompanyFormPr
         onChange={e => setValues(v => ({ ...v, name: e.target.value }))}
         error={errors.name}
         required
+      />
+      <Input
+        id="industry"
+        label="Industry"
+        placeholder="e.g. Technology, Finance, Healthcare"
+        value={values.industry ?? ''}
+        onChange={e => setValues(v => ({ ...v, industry: e.target.value }))}
+        error={errors.industry}
       />
       <Input
         id="website"

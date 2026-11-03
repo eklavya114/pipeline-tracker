@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const companySchema = z.object({
   name: z.string().min(1, 'Company name is required.'),
+  industry: z.string().optional(),
   website: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   notes: z.string().optional(),
 })
